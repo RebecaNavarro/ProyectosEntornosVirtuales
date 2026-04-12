@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class FlashlightMovement : MonoBehaviour
+public class NewMonoBehaviourScript : MonoBehaviour
 {
     public Animator flashlight;
 
@@ -12,42 +12,45 @@ public class FlashlightMovement : MonoBehaviour
     {
         flashlight = GetComponent<Animator>();
     }
-
     private void OnEnable()
     {
-        flashlightWalkAction.action.Enable();
         flashlightSprintAction.action.Enable();
+        flashlightWalkAction.action.Enable();
     }
 
     private void OnDisable()
     {
-        flashlightWalkAction.action.Disable();
         flashlightSprintAction.action.Disable();
+        flashlightWalkAction.action.Disable();
     }
-
     void Update()
     {
-        Vector2 moveInput = flashlightWalkAction.action.ReadValue<Vector2>();
-        bool isMoving = moveInput.magnitude > 0.1f;
-        bool isSprinting = flashlightSprintAction.action.IsPressed();
+        Vector2 moveInput = flashlightWalkAction.action.ReadValue<Vector2>(); //obtenemos el valor no es que lo modificamos, read only
+        bool isMoving = moveInput.magnitude > 0.1f; // apenas tenga una magnitud mayor a 0.1, es que se esta muviendo y entonces is moving es true
+        bool isSprinting = flashlightSprintAction.action.IsPressed(); //si esta presionada la tecla de sprint, entonces is sprinting es true
 
-        if (isMoving) 
+        if (isMoving)
         {
             if (isSprinting)
-            { 
+            {
                 flashlight.ResetTrigger("walk");
                 flashlight.SetTrigger("sprint");
             }
-            else            {
+            else
+            {
                 flashlight.ResetTrigger("sprint");
                 flashlight.SetTrigger("walk");
             }
         }
-        else       {
-            flashlight.ResetTrigger("walk");
+        else
+        {
             flashlight.ResetTrigger("sprint");
+            flashlight.ResetTrigger("walk");
+        }
+        if (isSprinting && !isMoving)
+        {
+            flashlight.ResetTrigger("walk");
+            flashlight.SetTrigger("sprint");
         }
     }
-
 }
-
