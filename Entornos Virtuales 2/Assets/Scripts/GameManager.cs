@@ -1,8 +1,12 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+
+    
     private int notesCount = 0;
+
     private void Awake()
     {
         Instance = this;
@@ -10,7 +14,7 @@ public class GameManager : MonoBehaviour
     }
     void Start()
     {
-
+     
     }
     public int GetNotesCount()
     {
@@ -20,4 +24,16 @@ public class GameManager : MonoBehaviour
     {
         notesCount++;
     }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    }
+
+    public void ResetGame()
+    {
+        notesCount = 0;
+        CancelInvoke();
+    }
+
 }

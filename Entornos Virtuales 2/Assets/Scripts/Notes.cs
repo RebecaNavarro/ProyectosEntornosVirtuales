@@ -37,6 +37,7 @@ public class Notes : MonoBehaviour
 
     void CheckIfLookingAtNote()
     {
+        if (playerCamPosition == null) return;
         Ray ray = new Ray(playerCamPosition.transform.position, playerCamPosition.transform.forward);
 
         if (Physics.Raycast(ray, out RaycastHit hit, lookRange) && hit.collider.gameObject == this.gameObject)

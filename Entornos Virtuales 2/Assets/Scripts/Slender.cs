@@ -1,19 +1,25 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Audio;
 
 public class Slender : MonoBehaviour
 {
     private NavMeshAgent navMeshAgentSlender;
-    private PlayerMovement player;
+    private PlayerMovement playerMovement;
+    private PlayerLook playerLook;
     private SkinnedMeshRenderer slenderMeshRenderer;
     private Animator slenderAnimator;
 
     private float baseSpeed = 0.5f;
+    private float catchDistance = 2f;
+    private bool isGameOver = false;
+
 
     void Start()
     {
         navMeshAgentSlender = GetComponent<NavMeshAgent>();
-        player = FindAnyObjectByType<PlayerMovement>();
+        playerMovement = FindAnyObjectByType<PlayerMovement>();
+        playerLook = FindAnyObjectByType<PlayerLook>();
         slenderMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
         slenderAnimator = GetComponent<Animator>();
 
@@ -23,25 +29,77 @@ public class Slender : MonoBehaviour
 
     void Update()
     {
-        navMeshAgentSlender.destination = player.transform.position;
-
-        float currentVelocity = navMeshAgentSlender.velocity.magnitude;
-        slenderAnimator.SetFloat("speed", currentVelocity);
-        cambiarDificultad();
+        if (isGameOver) return;
+        if (navMeshAgentSlender.enabled)
+        {
+            navMeshAgentSlender.destination = playerMovement.transform.position;
+            float currentVelocity = navMeshAgentSlender.velocity.magnitude;
+            slenderAnimator.SetFloat("speed", currentVelocity);
+            VerificarDistanciaConJugador();
+        }
+        CambiarDificultad();
 
     }
 
-    public void cambiarDificultad()
+    public void VerificarDistanciaConJugador()
+    {
+        float distanceToPlayer = Vector3.Distance(transform.position, playerMovement.transform.position);
+        if (distanceToPlayer <= catchDistance)
+        {
+            AtraparJugador();
+        }
+    }
+
+    public void AtraparJugador()
+    {
+        isGameOver = true;
+        // Detener a Slender
+        navMeshAgentSlender.isStopped = true;
+        navMeshAgentSlender.velocity = Vector3.zero;
+
+        // Hacer que Slender mire al jugador
+        Vector3 slenderlookAt = new Vector3(playerMovement.transform.position.x, transform.position.y, playerMovement.transform.position.z);
+        transform.LookAt(slenderlookAt);
+        slenderAnimator.SetTrigger("jumpScare");
+
+        // Desactivar controles del jugador
+        playerMovement.enabled = false;
+        playerLook.enabled = false;
+
+        // Forzar a la cámara del jugador a mirar a la cara de Slender
+        Vector3 playerLookAtSlender = transform.position + (Vector3.up * 2f);
+        playerLook.playerCamera.LookAt(playerLookAtSlender);
+
+        GameManager.Instance.Invoke("RestartGame", 3f);
+
+    }
+
+    public void CambiarDificultad()
     {
         int notas = GameManager.Instance.GetNotesCount();
-        Debug.Log("Notas recogidas: " + notas);
-        navMeshAgentSlender.speed = baseSpeed + (notas * 0.5f);
-        Debug.Log("Velocidad actual: " + navMeshAgentSlender.speed);
-
-        if (notas >= 2)
+        if (notas < 1)
         {
-            slenderAnimator.SetBool("isSprint", true);
+            navMeshAgentSlender.enabled = false;
+            slenderMeshRenderer.enabled = false;
+        }
+        else
+        {
+            navMeshAgentSlender.enabled = true;
+            slenderMeshRenderer.enabled = true;
+        }
+        navMeshAgentSlender.speed = baseSpeed + (notas * 0.5f);
+        if (notas >= 5)
+        {
+            slenderAnimator.SetBool("isRunning", true);
+            navMeshAgentSlender.acceleration = 12f;
         }
 
     }
+
+    public void ResetSlender()
+    {
+        isGameOver = false;
+
+    }
+
 }
